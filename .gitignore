@@ -1,0 +1,5 @@
+.gitignore/
+node_modules/
+variables.env/
+.idea/
+readme.md/
