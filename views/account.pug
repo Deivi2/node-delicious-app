@@ -1,0 +1,13 @@
+extends layout
+
+block content
+    .inner
+        h2 Edit your Account
+        form(action="/account" method="POST")
+            label(for="name") Name
+            //-user.name is from app.js res.locals.user = req.user || null;
+                if user logged it its gives it properties that passport allowed
+            input(type="text" name="name" value=user.name)
+            label(for="email") Email Address
+            input(type="email" name="email" value=user.email)
+            input.button(type="submit" value="Update My Account")
