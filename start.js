@@ -21,6 +21,7 @@ mongoose.connection.on('error', (err) => {
 
 
 // import all of our models
+require('./models/Review');
 require('./models/Store');
 require('./models/User');
 

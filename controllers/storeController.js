@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 const Store = mongoose.model('Store');
+const User = mongoose.model('User');
 const multer = require('multer');
 const jimp = require('jimp');
 const uuid = require('uuid');
+
 
 const multerOptions = {
     //where file will be stored
@@ -113,8 +115,8 @@ exports.getStoreBySlug = async (req, res, next) => {
 
     //query the database
     const store = await Store.findOne({slug: req.params.slug})
-    //that will give all info about author(user);
-        .populate('author');
+    //that will give all info about author(user) and reviews inside store;
+        .populate('author reviews');
     //this inside our app.js will pass our routes and go next to error middleware
     if (!store) return next();
     res.render('store', {store, title: store.name});
@@ -142,10 +144,27 @@ exports.getStoresByTag = async (req, res) => {
 
 };
 
-
-exports.mapPage = (req,res) => {
+exports.mapPage = (req, res) => {
     res.render('map', {title: 'Map page'})
 };
+
+
+exports.heartPage = async (req, res) => {
+
+    const hearts = req.user.hearts;
+    const stores = await Store.find({_id:{$in: hearts}});
+    res.render('heart', {title: 'Hearts Page', stores})
+
+};
+
+
+exports.getTopStores = async (req,res) => {
+
+    const stores = await Store.getTopStores();
+    res.render('topStores', {stores, title: 'Top Stores'})
+
+};
+
 
 
 /*
@@ -178,15 +197,15 @@ exports.mapStores = async (req, res) => {
     const coordinates = [req.query.lng, req.query.lat].map(parseFloat);
     //mongoDB $near let as search stores that ar near with 10km using $near and $maxDistance
     const q = {
-      location: {
-          $near:{
-              $geometry:{
-                  type: 'Point',
-                  coordinates: coordinates
-              },
-              $maxDistance: 10000 //10km
-          }
-      }
+        location: {
+            $near: {
+                $geometry: {
+                    type: 'Point',
+                    coordinates: coordinates
+                },
+                $maxDistance: 10000 //10km
+            }
+        }
     };
 
 
@@ -198,6 +217,26 @@ exports.mapStores = async (req, res) => {
     res.json(stores);
 
 };
+
+//toggle the hearth
+exports.heartStore = async (req, res) => {
+
+    const hearts = req.user.hearts.map(obj => obj.toString());
+
+    const operator = hearts.includes(req.params.id) ? '$pull' : '$addToSet';
+    const user = await User
+        .findOneAndUpdate(req.user_id,
+            //es6
+            {[operator]: {hearts: req.params.id}},
+            //it will add hearth to array before it updated not after
+            {new: true}
+        );
+    // console.log(hearts);
+    res.json(user);
+
+
+};
+
 
 
 
